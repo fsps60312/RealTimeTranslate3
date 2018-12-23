@@ -24,8 +24,8 @@ namespace RealTimeTranslate3
     {
         WebBrowser webBrowser;
         TextBox textBoxInput;
-        RadioButton radioButtonGoogle, radioButtonYahoo;
-        RadioButton radioButtonGoogleAuto, radioButtonGoogleEC, radioButtonGoogleCE;
+        RadioButton radioButtonBing, radioButtonYahoo;
+        RadioButton radioButtonBingAuto, radioButtonBingEC, radioButtonBingCE;
         Button buttonExpand,buttonRefresh,buttonBackword,buttonForward;
         Grid gridControl;
         Brush buttonForeground;
@@ -44,6 +44,7 @@ namespace RealTimeTranslate3
         }
         private void InitializeViews()
         {
+            this.Width = 900;
             webBrowser = new WebBrowser();
             webBrowser.Focusable = false;
             webBrowser.Navigating += (o, e) =>
@@ -65,16 +66,16 @@ namespace RealTimeTranslate3
             //PerformNavigate("https://codingsimplifylife.blogspot.com/");
             textBoxInput = new TextBox { FontSize = 18,MaxHeight=50 };
             textBoxInput.TextInput += TextBoxInput_TextInput;
-            radioButtonGoogle = new RadioButton { Content = "Google", FontSize = 15 };
-            radioButtonYahoo = new RadioButton { Content = "Yahoo", FontSize = 15, IsChecked = true };
-            radioButtonGoogleAuto = new RadioButton { Content = "Auto", FontSize = 12, IsChecked = true };
-            radioButtonGoogleCE = new RadioButton { Content = "CE", FontSize = 12 };
-            radioButtonGoogleEC = new RadioButton { Content = "EC", FontSize = 12 };
-            radioButtonGoogle.Checked += delegate { Refresh(); };
+            radioButtonBing = new RadioButton { Content = "Bing", FontSize = 15, IsChecked = true };
+            radioButtonYahoo = new RadioButton { Content = "Yahoo", FontSize = 15 };
+            radioButtonBingAuto = new RadioButton { Content = "Auto", FontSize = 12, IsChecked = true };
+            radioButtonBingCE = new RadioButton { Content = "CE", FontSize = 12 };
+            radioButtonBingEC = new RadioButton { Content = "EC", FontSize = 12 };
+            radioButtonBing.Checked += delegate { Refresh(); };
             radioButtonYahoo.Checked += delegate { Refresh(); };
-            radioButtonGoogleAuto.Checked += delegate { Refresh(); };
-            radioButtonGoogleCE.Checked += delegate { Refresh(); };
-            radioButtonGoogleEC.Checked += delegate { Refresh(); };
+            radioButtonBingAuto.Checked += delegate { Refresh(); };
+            radioButtonBingCE.Checked += delegate { Refresh(); };
+            radioButtonBingEC.Checked += delegate { Refresh(); };
 
             buttonExpand = new Button { Content = "︾展開", FontSize = 15 };//︽︾
             {
@@ -172,7 +173,7 @@ namespace RealTimeTranslate3
                         },
                         Children=
                         {
-                            radioButtonGoogle.Set(0,0,2),
+                            radioButtonBing.Set(0,0,2),
                             new Grid
                             {
                                 RowDefinitions=
@@ -187,9 +188,9 @@ namespace RealTimeTranslate3
                                 },
                                 Children=
                                 {
-                                    radioButtonGoogleAuto.Set(1,0),
-                                    radioButtonGoogleCE.Set(0,0),
-                                    radioButtonGoogleEC.Set(0,1)
+                                    radioButtonBingAuto.Set(1,0),
+                                    radioButtonBingCE.Set(0,0),
+                                    radioButtonBingEC.Set(0,1)
                                 }
                             }.Set(0,1),
                             radioButtonYahoo.Set(0,2,2),
@@ -244,28 +245,28 @@ namespace RealTimeTranslate3
                 //webBrowser.Refresh();
                 //await Task.Delay(100);
                 //webBrowser.Visibility = Visibility.Visible;
-                webBrowser.Navigate(url);
+                webBrowser.Navigate(url);//,null,null, "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/18.17763\r\n");
             }
             catch(Exception error) { ReportError(error); }
         }
         private void Refresh()
         {
             var word = this.Title = textBoxInput.Text;
-            if ((bool)radioButtonGoogle.IsChecked)
+            if ((bool)radioButtonBing.IsChecked)
             {
-                if ((bool)radioButtonGoogleAuto.IsChecked)
+                if ((bool)radioButtonBingAuto.IsChecked)
                 {
-                    PerformNavigate(GoogleTranslate.TranslateUrlAuto(word));
+                    PerformNavigate(BingTranslate.TranslateUrlAuto(word));
                 }
-                else if ((bool)radioButtonGoogleCE.IsChecked) PerformNavigate(GoogleTranslate.TranslateUrlCE(word));
-                else if ((bool)radioButtonGoogleEC.IsChecked) PerformNavigate(GoogleTranslate.TranslateUrlEC(word));
-                else MessageBox.Show("Google Auto/CE/EC?");
+                else if ((bool)radioButtonBingCE.IsChecked) PerformNavigate(BingTranslate.TranslateUrlCE(word));
+                else if ((bool)radioButtonBingEC.IsChecked) PerformNavigate(BingTranslate.TranslateUrlEC(word));
+                else MessageBox.Show("Bing Auto/CE/EC?");
             }
             else if ((bool)radioButtonYahoo.IsChecked)
             {
                 PerformNavigate(YahooDictionary.TranslateUrl(word));
             }
-            else MessageBox.Show("Google/Yahoo?");
+            else MessageBox.Show("Bing/Yahoo?");
         }
 
         private void TextBoxInput_TextInput(object sender, TextCompositionEventArgs e)
