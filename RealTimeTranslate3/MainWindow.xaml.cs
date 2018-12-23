@@ -65,8 +65,8 @@ namespace RealTimeTranslate3
             //PerformNavigate("https://codingsimplifylife.blogspot.com/");
             textBoxInput = new TextBox { FontSize = 18,MaxHeight=50 };
             textBoxInput.TextInput += TextBoxInput_TextInput;
-            radioButtonGoogle = new RadioButton { Content = "Google", FontSize = 15, IsChecked = true };
-            radioButtonYahoo = new RadioButton { Content = "Yahoo", FontSize = 15 };
+            radioButtonGoogle = new RadioButton { Content = "Google", FontSize = 15 };
+            radioButtonYahoo = new RadioButton { Content = "Yahoo", FontSize = 15, IsChecked = true };
             radioButtonGoogleAuto = new RadioButton { Content = "Auto", FontSize = 12, IsChecked = true };
             radioButtonGoogleCE = new RadioButton { Content = "CE", FontSize = 12 };
             radioButtonGoogleEC = new RadioButton { Content = "EC", FontSize = 12 };
@@ -141,6 +141,8 @@ namespace RealTimeTranslate3
         //}
         private void DrawViews()
         {
+            //var w = new WebBrowser();
+            //w.Navigate("https://translate.google.com.tw/#en/zh-TW/https%3A%2F%2Fcodingsimplifylife.blogspot.com%2F");
             this.Content = new Grid
             {
                 ClipToBounds = true,
@@ -302,7 +304,13 @@ namespace RealTimeTranslate3
                         Refresh();
                         if (checkBoxAutoPopUp.IsChecked == true)
                         {
-                            this.Activate();
+                            if(!this.Activate())
+                            {
+                                //this.Title += "#";
+                                this.Topmost = true;
+                                this.Activate();
+                                this.Topmost = false;
+                            }
                         }
                     }
                 }
