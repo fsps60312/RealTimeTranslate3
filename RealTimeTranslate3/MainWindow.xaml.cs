@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using Microsoft.Win32;
 
 namespace RealTimeTranslate3
 {
@@ -24,8 +25,8 @@ namespace RealTimeTranslate3
     {
         WebBrowser webBrowser;
         TextBox textBoxInput;
-        RadioButton radioButtonBing, radioButtonYahoo;
-        RadioButton radioButtonBingAuto, radioButtonBingEC, radioButtonBingCE;
+        RadioButton radioButtonGoogle,radioButtonBing, radioButtonYahoo;
+        RadioButton radioButtonAuto, radioButtonEC, radioButtonCE;
         Button buttonExpand,buttonRefresh,buttonBackword,buttonForward;
         Grid gridControl;
         Brush buttonForeground;
@@ -66,16 +67,18 @@ namespace RealTimeTranslate3
             //PerformNavigate("https://codingsimplifylife.blogspot.com/");
             textBoxInput = new TextBox { FontSize = 18,MaxHeight=50 };
             textBoxInput.TextInput += TextBoxInput_TextInput;
-            radioButtonBing = new RadioButton { Content = "Bing", FontSize = 15, IsChecked = true };
+            radioButtonGoogle = new RadioButton { Content = "Google", FontSize = 15, IsChecked = true };
+            radioButtonBing = new RadioButton { Content = "Bing", FontSize = 15 };
             radioButtonYahoo = new RadioButton { Content = "Yahoo", FontSize = 15 };
-            radioButtonBingAuto = new RadioButton { Content = "Auto", FontSize = 12, IsChecked = true };
-            radioButtonBingCE = new RadioButton { Content = "CE", FontSize = 12 };
-            radioButtonBingEC = new RadioButton { Content = "EC", FontSize = 12 };
+            radioButtonAuto = new RadioButton { Content = "Auto", FontSize = 12, IsChecked = true };
+            radioButtonCE = new RadioButton { Content = "CE", FontSize = 12 };
+            radioButtonEC = new RadioButton { Content = "EC", FontSize = 12 };
+            radioButtonGoogle.Checked += delegate { Refresh(); };
             radioButtonBing.Checked += delegate { Refresh(); };
             radioButtonYahoo.Checked += delegate { Refresh(); };
-            radioButtonBingAuto.Checked += delegate { Refresh(); };
-            radioButtonBingCE.Checked += delegate { Refresh(); };
-            radioButtonBingEC.Checked += delegate { Refresh(); };
+            radioButtonAuto.Checked += delegate { Refresh(); };
+            radioButtonCE.Checked += delegate { Refresh(); };
+            radioButtonEC.Checked += delegate { Refresh(); };
 
             buttonExpand = new Button { Content = "︾展開", FontSize = 15 };//︽︾
             {
@@ -169,11 +172,14 @@ namespace RealTimeTranslate3
                             new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)},
                             new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)},
                             new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)},
+                            new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)},
                             new ColumnDefinition{Width=new GridLength(1,GridUnitType.Star)}
                         },
                         Children=
                         {
-                            radioButtonBing.Set(0,0,2),
+                            radioButtonGoogle.Set(0,0,2),
+                            radioButtonBing.Set(0,1,2),
+                            radioButtonYahoo.Set(0,2,2),
                             new Grid
                             {
                                 RowDefinitions=
@@ -188,13 +194,12 @@ namespace RealTimeTranslate3
                                 },
                                 Children=
                                 {
-                                    radioButtonBingAuto.Set(1,0),
-                                    radioButtonBingCE.Set(0,0),
-                                    radioButtonBingEC.Set(0,1)
+                                    radioButtonAuto.Set(1,0),
+                                    radioButtonCE.Set(0,0),
+                                    radioButtonEC.Set(0,1)
                                 }
-                            }.Set(0,1),
-                            radioButtonYahoo.Set(0,2,2),
-                            buttonExpand.Set(0,3,2)
+                            }.Set(0,3),
+                            buttonExpand.Set(0,4,2)
                         }
                     }.Set(0,1),
                     (gridControl=new Grid
@@ -249,17 +254,52 @@ namespace RealTimeTranslate3
             }
             catch(Exception error) { ReportError(error); }
         }
+        // StringToUnicode: http://trufflepenne.blogspot.com/2013/03/cunicode.html
+        private string StringToUnicode(string srcText)
+        {
+            StringBuilder sb = new StringBuilder();
+            char[] src = srcText.ToCharArray();
+            for (int i = 0; i < src.Length; i++)
+            {
+                byte[] bytes = Encoding.Unicode.GetBytes(src[i].ToString());
+                string str = @"\u" + bytes[1].ToString("X2") + bytes[0].ToString("X2");
+                sb.Append(str);
+            }
+            return sb.ToString();
+        }
+        void NavigateGoogle(string url,string word)
+        {
+            LoadCompletedEventHandler e = null;
+            e = new LoadCompletedEventHandler((o, args) =>
+              {
+                  webBrowser.LoadCompleted -= e;
+                  webBrowser.InvokeScript("eval", $"document.getElementById('source').innerText='{StringToUnicode( word)}'");
+              });
+            webBrowser.LoadCompleted += e;
+            //webBrowser.Source = new Uri(url);
+            webBrowser.Navigate(url);
+        }
         private void Refresh()
         {
             var word = this.Title = textBoxInput.Text;
-            if ((bool)radioButtonBing.IsChecked)
+            if ((bool)radioButtonGoogle.IsChecked)
             {
-                if ((bool)radioButtonBingAuto.IsChecked)
+                if ((bool)radioButtonAuto.IsChecked)
+                {
+                    NavigateGoogle(GoogleTranslate.TranslateUrlAuto(word), word);
+                }
+                else if ((bool)radioButtonCE.IsChecked) NavigateGoogle(GoogleTranslate.TranslateUrlCE(word), word);
+                else if ((bool)radioButtonEC.IsChecked) NavigateGoogle(GoogleTranslate.TranslateUrlEC(word), word);
+                else MessageBox.Show("Google Auto/CE/EC?");
+            }
+            else if ((bool)radioButtonBing.IsChecked)
+            {
+                if ((bool)radioButtonAuto.IsChecked)
                 {
                     PerformNavigate(BingTranslate.TranslateUrlAuto(word));
                 }
-                else if ((bool)radioButtonBingCE.IsChecked) PerformNavigate(BingTranslate.TranslateUrlCE(word));
-                else if ((bool)radioButtonBingEC.IsChecked) PerformNavigate(BingTranslate.TranslateUrlEC(word));
+                else if ((bool)radioButtonCE.IsChecked) PerformNavigate(BingTranslate.TranslateUrlCE(word));
+                else if ((bool)radioButtonEC.IsChecked) PerformNavigate(BingTranslate.TranslateUrlEC(word));
                 else MessageBox.Show("Bing Auto/CE/EC?");
             }
             else if ((bool)radioButtonYahoo.IsChecked)
@@ -275,6 +315,11 @@ namespace RealTimeTranslate3
         }
         public MainWindow()
         {
+            var appName = System.Diagnostics.Process.GetCurrentProcess().ProcessName + ".exe";
+            using (var Key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BROWSER_EMULATION", true))
+            {
+                Key.SetValue(appName, 99999, RegistryValueKind.DWord);
+            }
             InitializeComponent();
             this.Title = "Initializing...";
             InitializeViews();
